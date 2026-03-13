@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泰语阶段复习测验 (课时1-4)</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 { text-align: center; color: #333; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 0.9em; }
+
+        .section {
+            margin-bottom: 40px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+        }
+
+        .section-title {
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .question-card {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .question-text { font-weight: bold; margin-bottom: 12px; display: block; }
+        
+        /* 选项样式 */
+        .options-group { display: flex; flex-direction: column; gap: 10px; }
+        .option-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .option-item:hover { background-color: #f0f7ff; }
+        input[type="radio"], input[type="checkbox"] { margin-right: 10px; }
+
+        /* 填空样式 */
+        .input-fill {
+            border: none;
+            border-bottom: 2px solid var(--primary-color);
+            padding: 5px 10px;
+            font-size: 16px;
+            outline: none;
+            width: 150px;
+            text-align: center;
+        }
+
+        /* 听力样式 */
+        .audio-player { margin: 10px 0; background: #f9f9f9; padding: 10px; border-radius: 5px; }
+        audio { width: 100%; height: 35px; }
+
+        /* 按钮 */
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-submit:hover { background: #357abd; }
+
+        /* 结果显示 */
+        #result-area {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+            text-align: center;
+        }
+        .wrong-answer { background-color: #ffeef0; border: 1px solid var(--error-color); }
+        .correct-hint { color: var(--success-color); font-size: 0.85em; margin-top: 5px; font-weight: normal; }
+        .score-text { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .input-fill { width: 100%; box-sizing: border-box; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>泰语基础测验</h1>
+    <p class="subtitle">涵盖内容：中辅音、单元音、特殊元音及声调 (课时1-4)</p>
+
+    <form id="quiz-form">
+        <div class="section">
+            <div class="section-title">一、单项选择题</div>
+            
+            <div class="question-card" id="q1">
+                <span class="question-text">1. 泰语中的中辅音 "ด" 在发音时，舌尖应该放在什么位置？</span>
+                <div class="options-group">
+                    <label class="option-item"><input type="radio" name="q1" value="A"> A. 上排牙齿根部</label>
+                    <label class="option-item"><input type="radio" name="q1" value="B"> B. 上颚</label>
+                    <label class="option-item"><input type="radio" name="q1" value="C"> C. 下排牙齿根部</label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" id="q2">
+                <span class="question-text">2. 单词 "ตี" 中的元音是长元音还是短元音？</span>
+                <div class="options-group">
+                    <label class="option-item"><input type="radio" name="q2" value="A"> A. 长元音</label>
+                    <label class="option-item"><input type="radio" name="q2" value="B"> B. 短元音</label>
+					<label class="option-item"><input type="radio" name="q2" value="C"> C. 特殊元音</label>					
+                </div>
+                <div class="feedback"></div>
+            </div>
+			
+			<div class="question-card" id="q3">
+                <span class="question-text">3. 以下哪一组音节的声调是一样的？</span>
+                <div class="options-group">
+                    <label class="option-item"><input type="radio" name="q3" value="A"> A. กะ เจอ โต๊ะ บำ</label>
+                    <label class="option-item"><input type="radio" name="q3" value="B"> B. ต่อ จะ ป่า ตุ</label>
+					<label class="option-item"><input type="radio" name="q3" value="C"> C. ดู ใด เกาะ เจ๋</label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">二、填空题</div>
+            
+            <div class="question-card" id="q4">
+                <span class="question-text">1. 请写出短元音 "-ะ" 对应的长元音形式： <input type="text" class="input-fill" id="q4_ans" placeholder="填入泰语字符"></span>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" id="q5">
+                <span class="question-text">2. 单词 "ป้า" (大娘、阿姨) 的声调是泰语中的第几个声调？第 <input type="text" class="input-fill" id="q5_ans" style="width:50px" placeholder="数字"> 声调</span>
+                <div class="feedback"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">三、听力题</div>
+            
+            <div class="question-card" id="q6">
+                <span class="question-text">1. 听录音，判断录音内容是以下哪一个？</span>
+                <div class="audio-player">
+                    <audio controls src="./audio/q6.mp3"></audio>
+                </div>
+                <div class="options-group">
+                    <label class="option-item"><input type="radio" name="q6" value="A"> A. ตาใจดี</label>
+                    <label class="option-item"><input type="radio" name="q6" value="B"> B. ดาใจตี</label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question-card" id="q7">
+                <span class="question-text">2. 听录音，判断录音中的单词包含的元音是哪一个？</span>
+                <div class="audio-player">
+                    <audio controls src="./audio/q7.mp3"></audio>
+                </div>
+                <div class="options-group">
+                    <label class="option-item"><input type="radio" name="q7" value="A"> A. เ-</label>
+                    <label class="option-item"><input type="radio" name="q7" value="B"> B. แ-</label>
+                </div>
+                <div class="feedback"></div>
+            </div>
+        </div>
+
+        <button type="button" class="btn-submit" onclick="submitQuiz()">提交答案</button>
+    </form>
+
+    <div id="result-area">
+        <div class="score-text" id="score-display"></div>
+        <p id="comment-display"></p>
+        <button onclick="location.reload()" style="padding: 5px 15px; cursor: pointer;">重新测试</button>
+    </div>
+</div>
+
+<script>
+    function submitQuiz() {
+        const answers = {
+            q1: 'B',
+            q2: 'A',
+            q3: 'B',
+            q4: '-า',
+            q5: '3',
+            q6: 'A',
+            q7: 'B'
+        };
+
+        let score = 0;
+        let total = 7;
+
+        // 清除之前的状态
+        document.querySelectorAll('.question-card').forEach(el => el.classList.remove('wrong-answer'));
+        document.querySelectorAll('.feedback').forEach(el => el.innerHTML = '');
+
+        // 校验逻辑
+        // Q1
+        const r1 = document.querySelector('input[name="q1"]:checked');
+        checkRadio('q1', r1, answers.q1, "正确答案是 B 上颚。ด的发音类似于汉语拼音的de去掉汉语拼音e的音，然后与长元音-อ 相拼而成的音，发音前舌尖轻贴在口腔上方硬硬的那一块（上颚），然后发do的音，感受气流冲开舌尖，");
+
+        // Q2
+        const r2 = document.querySelector('input[name="q2"]:checked');
+        checkRadio('q2', r2, answers.q2, "正确答案是 A 长元音 (-ี)");
+
+        // Q3
+        const r3 = document.querySelector('input[name="q3"]:checked');
+        checkRadio('q3', r3, answers.q3, "正确答案是 B，A组中的กะ เจอ โต๊ะ บำ，声调分别是2、1、4、1，C组中的ดู ใด เกาะ เจ๋，声调分别是1、1、2、5，B组中的四个音节的声调全部为第2声调");
+
+        // Q4
+        const r4 = document.getElementById('q4_ans').value.trim();
+        checkText('q4', r4, answers.q4, "正确答案是 -า，单独书写这个元音时要记得带上前面的辅音占位符哦");
+
+        // Q4
+        const r5 = document.getElementById('q5_ans').value.trim();
+        checkText('q5', r5, answers.q5, "正确答案是 第3声调 (中辅音+长元音+ -่符号要发第3声调");
+
+        // Q6
+        const r6 = document.querySelector('input[name="q6"]:checked');
+        checkRadio('q6', r6, answers.q6, "正确答案是 A ตาใจดี，本题考察对ด和ต这对中辅音的区分");
+
+        // Q7
+        const r7 = document.querySelector('input[name="q7"]:checked');
+        checkRadio('q7', r7, answers.q7, "正确答案是 B แ-，录音所读的音节是แจ้，本题考察对เ-和แ-这两个元音的区分，注意แ-的发音类似于英语中的梅花音，而เ-则类似于英文字母A");
+
+        // 计算分数
+        function checkRadio(id, userAns, correct, hint) {
+            if (userAns && userAns.value === correct) {
+                score++;
+            } else {
+                markWrong(id, hint);
+            }
+        }
+
+        function checkText(id, userAns, correct, hint) {
+            if (userAns === correct) {
+                score++;
+            } else {
+                markWrong(id, hint);
+            }
+        }
+
+        function markWrong(id, hint) {
+            const card = document.getElementById(id);
+            card.classList.add('wrong-answer');
+            card.querySelector('.feedback').innerHTML = `<p class="correct-hint">❌ ${hint}</p>`;
+        }
+
+        // 显示结果
+        const resultArea = document.getElementById('result-area');
+        const scoreDisplay = document.getElementById('score-display');
+        resultArea.style.display = 'block';
+        scoreDisplay.innerText = `得分：${Math.round((score/total)*100)}`;
+        document.getElementById('comment-display').innerText = `你答对了 ${score} / ${total} 道题。`;
+        
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
