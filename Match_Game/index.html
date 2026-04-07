@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>泰语记忆配对工具</title>
+    <style>
+        :root {
+            --soft-green: #dcedc8;
+            --main-green: #66bb6a;
+            --hover-green: #4caf50;
+            --dark-green: #1b5e20;
+            --bg-color: #f9fbf9;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--dark-green); display: flex; flex-direction: column; align-items: center; padding: 40px; }
+        
+        h1 { margin-bottom: 30px; color: var(--dark-green); font-size: 2.2rem; }
+
+        .controls { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.06); margin-bottom: 50px; border: 1px solid var(--soft-green); display: flex; align-items: center; gap: 30px; }
+        
+        /* 上传热区样式 */
+        .upload-zone { 
+            padding: 12px 25px; border: 2px dashed var(--main-green); border-radius: 12px; 
+            cursor: pointer; color: var(--dark-green); transition: 0.3s; background: var(--soft-green); font-weight: bold;
+        }
+        .upload-zone:hover { background: #c5e1a5; }
+        #fileInput { display: none; }
+        
+        .radio-group { display: flex; gap: 15px; align-items: center; font-size: 1.1rem; }
+        
+        button { 
+            padding: 12px 30px; background: linear-gradient(135deg, var(--main-green), var(--hover-green)); 
+            color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 1rem;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3); }
+
+        /* 增大间距：gap从20px变为40px */
+        .game-board { display: grid; gap: 40px; margin-top: 20px; }
+        
+        .card { 
+            width: 130px; height: 130px; cursor: pointer; display: flex; align-items: center; justify-content: center; 
+            border-radius: 16px; border: 2px solid var(--main-green); background-color: white; 
+            font-size: 1.8rem; font-weight: 600; transition: 0.3s; padding: 15px; text-align: center; box-shadow: 0 6px 10px rgba(0,0,0,0.06);
+            word-break: break-all;
+        }
+        .card:hover { transform: scale(1.08); border-color: var(--dark-green); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        .card.selected { background-color: var(--soft-green); border-width: 4px; }
+        .card.hidden { visibility: hidden; }
+
+        #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 50px; border-radius: 25px; text-align: center; max-width: 500px; }
+        table { margin: 25px auto; width: 100%; border-collapse: collapse; }
+        th { background-color: var(--soft-green); padding: 12px; }
+        td { border-bottom: 1px solid #eee; padding: 12px; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+<h1>泰语配对小游戏</h1>
+
+<div class="controls">
+    <div class="radio-group">
+        <span>方块数量:</span>
+        <label><input type="radio" name="num" value="6" checked> 6</label>
+        <label><input type="radio" name="num" value="8"> 8</label>
+    </div>
+    
+    <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+        点击此处上传CSV
+    </div>
+    <input type="file" id="fileInput" accept=".csv">
+    
+    <button onclick="startGame()">开始游戏</button>
+</div>
+
+<div id="gameBoard" class="game-board"></div>
+
+<div id="modal">
+    <div class="modal-content">
+        <h2 style="color: var(--dark-green); margin-bottom: 20px;">恭喜完成！</h2>
+        <p id="finalTime" style="font-size: 1.3rem; margin-bottom: 20px;"></p>
+        <table><thead><tr><th>方块1</th><th>方块2</th></tr></thead><tbody id="resultBody"></tbody></table>
+        <button onclick="closeModal()">关闭</button>
+    </div>
+</div>
+
+<script>
+    let csvData = [], selectedCards = [], matchedCount = 0, startTime, currentPairs = [];
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            csvData = e.target.result.split('\n').map(l => l.split(',').map(s => s.trim().replace(/["\r]/g, ''))).filter(row => row.length >= 2);
+            alert("文件已成功加载！");
+        };
+        reader.readAsText(file);
+    });
+
+    function startGame() {
+        const N = parseInt(document.querySelector('input[name="num"]:checked').value);
+        if (csvData.length < N / 2) return alert("请先上传足够的 CSV 数据");
+
+        const board = document.getElementById('gameBoard');
+        board.innerHTML = '';
+        board.style.gridTemplateColumns = `repeat(${N/2}, 130px)`;
+        
+        let gameItems = [];
+        let selected = csvData.sort(() => 0.5 - Math.random()).slice(0, N / 2);
+        currentPairs = selected; 
+
+        selected.forEach((pair, i) => {
+            gameItems.push({val: pair[0], id: i}, {val: pair[1], id: i});
+        });
+        gameItems.sort(() => 0.5 - Math.random());
+
+        gameItems.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerText = item.val;
+            card.dataset.id = item.id;
+            card.onclick = () => selectCard(card);
+            board.appendChild(card);
+        });
+        matchedCount = 0; selectedCards = []; startTime = Date.now();
+    }
+
+    function selectCard(card) {
+        if (selectedCards.length >= 2 || card.classList.contains('selected') || card.classList.contains('hidden')) return;
+        card.classList.add('selected');
+        selectedCards.push(card);
+
+        if (selectedCards.length === 2) {
+            const [c1, c2] = selectedCards;
+            if (c1.dataset.id === c2.dataset.id) {
+                setTimeout(() => {
+                    c1.classList.add('hidden'); c2.classList.add('hidden');
+                    matchedCount += 2;
+                    if (matchedCount === parseInt(document.querySelector('input[name="num"]:checked').value)) showResult();
+                }, 400);
+            } else {
+                setTimeout(() => { c1.classList.remove('selected'); c2.classList.remove('selected'); }, 600);
+            }
+            selectedCards = [];
+        }
+    }
+
+    function showResult() {
+        const time = ((Date.now() - startTime) / 1000).toFixed(1);
+        document.getElementById('finalTime').innerText = `总用时：${time} 秒`;
+        const tbody = document.getElementById('resultBody');
+        tbody.innerHTML = '';
+        currentPairs.forEach(pair => {
+            const row = tbody.insertRow();
+            row.insertCell().innerText = pair[0];
+            row.insertCell().innerText = pair[1];
+        });
+        document.getElementById('modal').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+</script>
+</body>
+</html>
