@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>泰语记忆配对工具</title>
+    <title>语言记忆配对工具</title>
     <style>
         :root {
             --soft-green: #dcedc8;
@@ -27,6 +27,7 @@
         #fileInput { display: none; }
         
         .radio-group { display: flex; gap: 15px; align-items: center; font-size: 1.1rem; }
+        .radio-group label { cursor: pointer; display: flex; align-items: center; gap: 4px; }
         
         button { 
             padding: 12px 30px; background: linear-gradient(135deg, var(--main-green), var(--hover-green)); 
@@ -34,8 +35,7 @@
         }
         button:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3); }
 
-        /* 增大间距：gap从20px变为40px */
-        .game-board { display: grid; gap: 40px; margin-top: 20px; }
+        .game-board { display: grid; gap: 40px; margin-top: 20px; justify-content: center; }
         
         .card { 
             width: 130px; height: 130px; cursor: pointer; display: flex; align-items: center; justify-content: center; 
@@ -48,21 +48,26 @@
         .card.hidden { visibility: hidden; }
 
         #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 50px; border-radius: 25px; text-align: center; max-width: 500px; }
-        table { margin: 25px auto; width: 100%; border-collapse: collapse; }
-        th { background-color: var(--soft-green); padding: 12px; }
-        td { border-bottom: 1px solid #eee; padding: 12px; font-size: 1.1rem; }
+        .modal-content { background: white; padding: 50px; border-radius: 25px; text-align: center; max-width: 500px; width: 90%; }
+        
+        .table-wrapper { max-height: 250px; overflow-y: auto; margin: 25px auto; width: 100%; border: 1px solid #eee; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: var(--soft-green); padding: 12px; position: sticky; top: 0; }
+        td { border-bottom: 1px solid #eee; padding: 12px; font-size: 1.1rem; background: white; }
     </style>
 </head>
 <body>
 
-<h1>泰语配对小游戏</h1>
+<h1>语言配对小游戏</h1>
 
 <div class="controls">
     <div class="radio-group">
         <span>方块数量:</span>
         <label><input type="radio" name="num" value="6" checked> 6</label>
         <label><input type="radio" name="num" value="8"> 8</label>
+        <label><input type="radio" name="num" value="10"> 10</label>
+        <label><input type="radio" name="num" value="12"> 12</label>
+        <label><input type="radio" name="num" value="16"> 16</label>
     </div>
     
     <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
@@ -79,7 +84,12 @@
     <div class="modal-content">
         <h2 style="color: var(--dark-green); margin-bottom: 20px;">恭喜完成！</h2>
         <p id="finalTime" style="font-size: 1.3rem; margin-bottom: 20px;"></p>
-        <table><thead><tr><th>方块1</th><th>方块2</th></tr></thead><tbody id="resultBody"></tbody></table>
+        <div class="table-wrapper">
+            <table>
+                <thead><tr><th>泰语</th><th>中文</th></tr></thead>
+                <tbody id="resultBody"></tbody>
+            </table>
+        </div>
         <button onclick="closeModal()">关闭</button>
     </div>
 </div>
@@ -93,18 +103,27 @@
         const reader = new FileReader();
         reader.onload = (e) => {
             csvData = e.target.result.split('\n').map(l => l.split(',').map(s => s.trim().replace(/["\r]/g, ''))).filter(row => row.length >= 2);
-            alert("文件已成功加载！");
+            alert("文件已成功加载！已读取 " + csvData.length + " 组配对。");
         };
         reader.readAsText(file);
     });
 
     function startGame() {
         const N = parseInt(document.querySelector('input[name="num"]:checked').value);
-        if (csvData.length < N / 2) return alert("请先上传足够的 CSV 数据");
+        if (csvData.length < N / 2) return alert("请先上传足够的 CSV 数据（当前所选难度至少需要 " + (N/2) + " 组数据）");
 
         const board = document.getElementById('gameBoard');
         board.innerHTML = '';
-        board.style.gridTemplateColumns = `repeat(${N/2}, 130px)`;
+        
+        // 根据要求动态配置每行显示的列数
+        let columns;
+        if (N === 6) columns = 3;       // 6个：分2行，每行3个
+        else if (N === 8) columns = 4;  // 8个：分2行，每行4个
+        else if (N === 10) columns = 5; // 10个：分2行，每行5个
+        else if (N === 12) columns = 4; // 12个：分3行，每行4个
+        else if (N === 16) columns = 4; // 16个：分4行，每行4个
+        
+        board.style.gridTemplateColumns = `repeat(${columns}, 130px)`;
         
         let gameItems = [];
         let selected = csvData.sort(() => 0.5 - Math.random()).slice(0, N / 2);
