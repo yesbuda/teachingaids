@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课堂词汇随机抽取系统 (含释义版)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 顶部控制栏 */
+        .control-panel {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        input[type="file"] {
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background-color: #409eff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: #66b1ff;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background-color: #c0c4cc;
+            cursor: not-allowed;
+        }
+
+        /* 眼睛图标切换按钮样式 */
+        .eye-btn {
+            background: transparent;
+            border: 1px solid #dcdfe6;
+            border-radius: 5px;
+            padding: 6px 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #606266;
+            transition: all 0.2s;
+        }
+
+        .eye-btn:hover {
+            background-color: #f4f4f5;
+            color: #409eff;
+            border-color: #c6e2ff;
+        }
+
+        .eye-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* 进度提示 */
+        .progress {
+            font-size: 16px;
+            color: #606266;
+            font-weight: 500;
+        }
+
+        /* 核心词汇展示区域（占页面80%） */
+        .display-container {
+            width: 80vw;
+            height: 70vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column; /* 垂直排列 */
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            border: 2px solid #e4e7ed;
+            gap: 20px; /* 单词和含义之间的间距 */
+        }
+
+        /* 单词样式 */
+        .word-text {
+            font-size: 7vw;
+            font-weight: bold;
+            color: #303133;
+            word-wrap: break-word;
+            max-width: 100%;
+            user-select: none;
+        }
+
+        /* 词汇含义样式：灰色小字 */
+        .meaning-text {
+            font-size: 2.5vw;
+            color: #909399;
+            font-weight: normal;
+            word-wrap: break-word;
+            max-width: 90%;
+            user-select: none;
+            line-height: 1.4;
+        }
+
+        /* 初始状态/结束状态的提示语样式 */
+        .status-msg {
+            font-size: 24px;
+            color: #909399;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="control-panel">
+        <input type="file" id="csvFileInput" accept=".csv" />
+        <button id="startBtn" disabled>开始练习</button>
+        <button id="nextBtn" style="display: none;">下一个</button>
+        
+        <!-- 小眼睛显示/隐藏控制按钮 -->
+        <button id="toggleMeaningBtn" class="eye-btn" title="切换释义显示/隐藏">
+            <!-- 默认开启状态的眼睛 SVG 图标 -->
+            <svg id="eyeOpenIcon" viewBox="0 0 1024 1024">
+                <path d="M512 192c-247.42 0-448 320-448 320s200.58 320 448 320 448-320 448-320-200.58-320-448-320z m0 512c-106.04 0-192-85.96-192-192s85.96-192 192-192 192 85.96 192 192-85.96 192-192 192z m0-320c-70.69 0-128 57.31-128 128s57.31 128 128 128 128-57.31 128-128-57.31-128-128-128z"/>
+            </svg>
+            <!-- 闭眼/隐藏状态的 SVG 图标（初始隐藏） -->
+            <svg id="eyeCloseIcon" viewBox="0 0 1024 1024" style="display: none;">
+                <path d="M508.8 691.2c-98.1 0-177.9-79.8-177.9-177.9 0-21.3 3.8-41.8 10.7-60.8l-123-123C138.8 387 83.2 457.7 64 513.3c0 0 200.6 320 448 320 61 0 119-19.5 171.1-50.6L569.2 668.8c-18.7 14.3-41.8 22.4-60.4 22.4zM512 321.3c98.1 0 177.9 79.8 177.9 177.9 0 21.3-3.8 41.8-10.7 60.8l123 123C885.2 639.6 940.8 568.9 960 513.3c0 0-200.6-320-448-320-61 0-119 19.5-171.1 50.6l113.9 113.9c18.7-14.2 41.8-22.3 60.4-22.3zM182.2 125.7L125.7 182.2l716.1 716.1 56.6-56.6z"/>
+            </svg>
+        </button>
+
+        <div class="progress" id="progressInfo"></div>
+    </div>
+
+    <div class="display-container">
+        <div id="wordDisplay" class="status-msg">拼词游戏</div>
+        <div id="meaningDisplay" class="meaning-text" style="display: none;"></div>
+    </div>
+
+    <script>
+        let rawWords = [];      // 存储从CSV解析出的原始词汇对象数组 [{word: 'xxx', meaning: 'yyy'}]
+        let shuffledWords = []; // 存储打乱顺序后的词汇
+        let currentIndex = -1;  // 当前展示的词汇索引
+        let isMeaningVisible = true; // 记录当前是否显示第二列释义
+
+        const fileInput = document.getElementById('csvFileInput');
+        const startBtn = document.getElementById('startBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const wordDisplay = document.getElementById('wordDisplay');
+        const meaningDisplay = document.getElementById('meaningDisplay');
+        const progressInfo = document.getElementById('progressInfo');
+        
+        const toggleMeaningBtn = document.getElementById('toggleMeaningBtn');
+        const eyeOpenIcon = document.getElementById('eyeOpenIcon');
+        const eyeCloseIcon = document.getElementById('eyeCloseIcon');
+
+        // 切换释义显隐逻辑
+        toggleMeaningBtn.addEventListener('click', () => {
+            isMeaningVisible = !isMeaningVisible;
+            
+            // 切换图标
+            eyeOpenIcon.style.display = isMeaningVisible ? 'block' : 'none';
+            eyeCloseIcon.style.display = isMeaningVisible ? 'none' : 'block';
+
+            // 实时刷新当前词汇的显示状态
+            if (currentIndex >= 0 && currentIndex < shuffledWords.length) {
+                showWord();
+            }
+        });
+
+        // 1. 监听文件上传
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const text = event.target.result;
+                parseCSV(text);
+            };
+            reader.readAsText(file, 'UTF-8'); // 如果Excel导出的文件乱码，可改为 'GBK'
+        });
+
+        // 2. 解析CSV内容（支持词汇+释义两列）
+        function parseCSV(text) {
+            const lines = text.split(/\r?\n/).map(line => line.trim()).filter(line => line !== "");
+            
+            rawWords = [];
+            lines.forEach(line => {
+                const cells = line.split(',');
+                if (cells[0] && cells[0].trim() !== "") {
+                    const word = cells[0].replace(/^["']|["']$/g, '').trim();
+                    const meaning = cells[1] ? cells[1].replace(/^["']|["']$/g, '').trim() : "";
+                    
+                    rawWords.push({ word: word, meaning: meaning });
+                }
+            });
+
+            if (rawWords.length > 0) {
+                wordDisplay.textContent = `成功加载 ${rawWords.length} 个词汇，请点击“开始练习”`;
+                wordDisplay.className = "status-msg";
+                meaningDisplay.style.display = 'none'; // 隐藏含义区
+                startBtn.disabled = false;
+                resetGame();
+            } else {
+                alert("未在CSV文件中检测到有效词汇，请检查文件格式。");
+                startBtn.disabled = true;
+            }
+        }
+
+        // 3. 重置状态
+        function resetGame() {
+            shuffledWords = [];
+            currentIndex = -1;
+            nextBtn.style.display = 'none';
+            startBtn.style.display = 'inline-block';
+            progressInfo.textContent = '';
+        }
+
+        // 4. 洗牌算法（随机打乱）
+        function shuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // 5. 点击开始练习
+        startBtn.addEventListener('click', () => {
+            if (rawWords.length === 0) return;
+            
+            shuffledWords = shuffle(rawWords);
+            currentIndex = 0;
+
+            startBtn.style.display = 'none';
+            nextBtn.style.display = 'inline-block';
+
+            showWord();
+        });
+
+        // 6. 点击下一个
+        nextBtn.addEventListener('click', () => {
+            currentIndex++;
+            if (currentIndex < shuffledWords.length) {
+                showWord();
+            } else {
+                // 所有词汇抽取完毕
+                wordDisplay.textContent = "🎉 所有词汇已全部练习完毕！";
+                wordDisplay.className = "status-msg";
+                meaningDisplay.style.display = 'none'; // 隐藏含义
+
+                nextBtn.style.display = 'none';
+                startBtn.style.display = 'inline-block';
+                startBtn.textContent = "重新开始";
+                progressInfo.textContent = `进度: ${shuffledWords.length} / ${shuffledWords.length}`;
+            }
+        });
+
+        // 7. 渲染词汇和含义到页面中央
+        function showWord() {
+            const currentItem = shuffledWords[currentIndex];
+            
+            // 显示单词
+            wordDisplay.textContent = currentItem.word;
+            wordDisplay.className = "word-text"; 
+            
+            // 根据小眼睛开关状态及是否有含义，决定是否显示第二列（含义）
+            if (currentItem.meaning && isMeaningVisible) {
+                meaningDisplay.textContent = currentItem.meaning;
+                meaningDisplay.style.display = 'block'; 
+            } else {
+                meaningDisplay.style.display = 'none';  
+            }
+            
+            // 更新进度条
+            progressInfo.textContent = `进度: ${currentIndex + 1} / ${shuffledWords.length}`;
+        }
+    </script>
+</body>
+</html>
